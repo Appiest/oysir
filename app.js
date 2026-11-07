@@ -223,48 +223,92 @@ async function initModel(api) {
 }
 
 /* ---------- "Our Time" on the song slide: P or the pearl plays it; leaving the slide fades it out ---------- */
+// On the live site the song streams from YouTube. A local copy (localhost) plays audio/our-time.m4a
+// when that file exists; it is kept out of Git because the recording is copyrighted.
 const songSlide = document.getElementById('song').closest('.slide');
 const songToggle = document.getElementById('song-toggle');
-const song = { player: null, ready: false, playing: false, fadeTimer: 0 };
+const song = { backend: null, playing: false, fadeTimer: 0 };
+const localSongUrl = 'audio/our-time.m4a';
+const isLocalCopy = ['localhost', '127.0.0.1', '[::1]'].includes(location.hostname);
 
-function loadSongPlayer() {
-  window.onYouTubeIframeAPIReady = () => {
-    song.player = new YT.Player('song-player', {
-      videoId: 'lMo7szh1eLA',
-      playerVars: { controls: 0, disablekb: 1, rel: 0, playsinline: 1, iv_load_policy: 3, fs: 0 },
-      events: { onReady: () => { song.ready = true; }, onStateChange: (e) => showSongState(e.data) },
-    });
-  };
-  const script = document.createElement('script');
-  script.src = 'https://www.youtube.com/iframe_api';
-  document.head.append(script);
+function showSongPlaying(playing) {
+  song.playing = playing;
+  songToggle.classList.toggle('playing', playing);
+  songToggle.setAttribute('aria-label', playing ? 'Pause “Our Time”' : 'Play “Our Time”');
 }
 
-function showSongState(state) {
+function createLocalSong(url) {
+  const audio = new Audio(url);
+  audio.preload = 'auto';
+  audio.addEventListener('playing', () => showSongPlaying(true));
+  audio.addEventListener('pause', () => showSongPlaying(false));
+  return {
+    play: () => audio.play().catch(() => showSongPlaying(false)),
+    pause: () => audio.pause(),
+    getVolume: () => audio.volume,
+    setVolume: (volume) => { audio.volume = volume; },
+  };
+}
+
+function showYouTubeState(state) {
   const { PLAYING, PAUSED, ENDED } = YT.PlayerState;
-  if (![PLAYING, PAUSED, ENDED].includes(state)) return;
-  song.playing = state === PLAYING;
-  songToggle.classList.toggle('playing', song.playing);
-  songToggle.setAttribute('aria-label', song.playing ? 'Pause “Our Time”' : 'Play “Our Time”');
+  if (state === PLAYING) showSongPlaying(true);
+  else if (state === PAUSED || state === ENDED) showSongPlaying(false);
+}
+
+function createYouTubeSong(videoId) {
+  return new Promise((resolve) => {
+    window.onYouTubeIframeAPIReady = () => {
+      const player = new YT.Player('song-player', {
+        videoId,
+        playerVars: { controls: 0, disablekb: 1, rel: 0, playsinline: 1, iv_load_policy: 3, fs: 0 },
+        events: {
+          onReady: () => resolve({
+            play: () => player.playVideo(),
+            pause: () => player.pauseVideo(),
+            getVolume: () => player.getVolume() / 100,
+            setVolume: (volume) => player.setVolume(volume * 100),
+          }),
+          onStateChange: (e) => showYouTubeState(e.data),
+        },
+      });
+    };
+    const script = document.createElement('script');
+    script.src = 'https://www.youtube.com/iframe_api';
+    document.head.append(script);
+  });
+}
+
+async function localSongExists() {
+  try { return (await fetch(localSongUrl, { method: 'HEAD' })).ok; } catch { return false; }
+}
+
+async function loadSong() {
+  if (isLocalCopy && await localSongExists()) {
+    document.getElementById('song').classList.add('local');
+    song.backend = createLocalSong(localSongUrl);
+    return;
+  }
+  song.backend = await createYouTubeSong('lMo7szh1eLA');
 }
 
 function playSong() {
-  if (!song.ready) return;
+  if (!song.backend) return;
   clearInterval(song.fadeTimer);
-  song.player.setVolume(100);
-  song.player.playVideo();
+  song.backend.setVolume(1);
+  song.backend.play();
 }
 
 function fadeOutSong() {
-  if (!song.ready || !song.playing) return;
+  if (!song.backend || !song.playing) return;
   clearInterval(song.fadeTimer);
-  let volume = song.player.getVolume();
+  let volume = song.backend.getVolume();
   song.fadeTimer = setInterval(() => {
-    volume -= 6;
-    if (volume > 0) { song.player.setVolume(volume); return; }
+    volume -= 0.06;
+    if (volume > 0) { song.backend.setVolume(volume); return; }
     clearInterval(song.fadeTimer);
-    song.player.pauseVideo();
-    song.player.setVolume(100);
+    song.backend.pause();
+    song.backend.setVolume(1);
   }, 50);
 }
 
@@ -273,7 +317,7 @@ function toggleSong() {
 }
 
 songToggle.addEventListener('click', toggleSong);
-loadSongPlayer();
+loadSong();
 
 /* ---------- go ---------- */
 fit();

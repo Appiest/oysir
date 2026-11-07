@@ -33,6 +33,8 @@ On the **3D model** slide, the model turns by itself. Drag it to turn it, and ta
 
 On the **“Our Time”** slide, press P or the pearl button to play the song (it streams from YouTube, so you need an internet connection). When you move to another slide, the song fades out.
 
+To present without internet, run the deck locally and put the song at `audio/our-time.m4a`. On `localhost`, the deck plays that file instead of YouTube. The `audio/` folder is in `.gitignore`, so the recording never goes into the public repository.
+
 ## Files
 
 ```

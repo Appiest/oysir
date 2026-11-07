@@ -73,6 +73,7 @@ h2 { font: 600 96px/1.05 var(--serif); }
 /* Song */
 .song { position: absolute; right: 128px; top: 50%; translate: 0 -50%; display: flex; flex-direction: column; align-items: center; gap: 40px; }
 .song-video { width: 640px; aspect-ratio: 16 / 9; border-radius: 24px; overflow: hidden; background: var(--shell); box-shadow: var(--shadow-lift); }
+.song.local .song-video { display: none; }
 .song-video iframe { display: block; width: 100%; height: 100%; border: 0; pointer-events: none; }
 .pearl-play { position: relative; width: 120px; height: 120px; border: 0; padding: 0; cursor: pointer; color: var(--shell);
   display: grid; place-items: center; outline: 0 solid transparent; outline-offset: 8px;
