@@ -1,0 +1,118 @@
+/* OySir Pitch — a fixed 1920×1080 stage, scaled to fit any screen.
+   Palette: oyster-shell charcoal, nacre grey, brass. Type: Cormorant Garamond + DM Sans. */
+:root {
+  color-scheme: dark;
+  --shell: #1c1b1a;
+  --nacre: #ecedea;
+  --nacre-2: #f7f7f5;
+  --ink-soft: #4a4844;
+  --mute: #9c9891;
+  --brass: #c9a45c;
+  --brass-deep: #7a5b1c;
+  --rule: #b08a3e;
+  --letterbox: #0e0e0d;
+  --serif: "Cormorant Garamond", Georgia, serif;
+  --sans: "DM Sans", Arial, sans-serif;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+body { background: var(--letterbox); color: var(--nacre); font-family: var(--sans); overflow: hidden; }
+
+.viewport { position: fixed; inset: 0; display: grid; place-items: center;
+  padding: env(safe-area-inset-top, 0px) max(0px, env(safe-area-inset-right, 0px)) env(safe-area-inset-bottom, 0px) max(0px, env(safe-area-inset-left, 0px)); }
+.stage { position: relative; width: 1920px; height: 1080px; flex: none; transform-origin: center center; overflow: hidden; }
+
+.slide { position: absolute; inset: 0; padding: 128px; display: flex; flex-direction: column; gap: 48px;
+  opacity: 0; visibility: hidden; transition: opacity .45s ease, visibility 0s linear .45s; }
+.slide.active { opacity: 1; visibility: visible; transition: opacity .45s ease; }
+.slide.dark { background: var(--shell); color: var(--nacre); }
+.slide.light { background: var(--nacre); color: var(--shell); }
+.slide .notes { display: none; }
+.center-col { justify-content: center; gap: 32px; }
+
+h1, h2, p, figure { margin: 0; }
+h2 { font: 600 96px/1.05 var(--serif); }
+.gold { color: var(--brass); }
+.light .gold { color: var(--brass-deep); }
+.eyebrow { font-size: 24px; letter-spacing: 4px; text-transform: uppercase; color: var(--brass-deep); }
+.sub { font-size: 32px; color: var(--ink-soft); }
+.rule { width: 160px; border: 0; border-top: 4px solid var(--rule); margin: 0; }
+
+/* Cover */
+.cover-img { position: absolute; top: 0; right: 0; width: 768px; height: 1080px; object-fit: cover; }
+.cover-text { margin-block: auto; width: 900px; display: flex; flex-direction: column; gap: 24px; }
+.mega { line-height: 0; }
+.wordmark { height: 200px; width: auto; display: block; }  /* "OySir" outlined from the Vogue font */
+.wordmark-inline { height: .72em; width: auto; vertical-align: baseline; margin-right: .08em; }
+.tag { font: italic 500 72px/1.1 var(--serif); }
+.byline { position: absolute; left: 128px; bottom: 64px; font-size: 24px; color: var(--mute); }
+
+/* Song */
+.song-title { font: 600 200px/1 var(--serif); }
+.idiom { font: italic 500 88px/1.1 var(--serif); }
+
+/* Concept */
+.concept-img { position: absolute; top: 0; right: 0; width: 1152px; height: 1080px; object-fit: cover; }
+.concept-text { margin-block: auto; width: 560px; display: flex; flex-direction: column; gap: 24px; }
+.statement { font: 600 96px/1.1 var(--serif); }
+
+/* Grids of figures */
+.grid { display: grid; gap: 32px; margin-top: auto; }
+.g3 { grid-template-columns: repeat(3, 1fr); }
+.g4 { grid-template-columns: repeat(4, 1fr); }
+.g5 { grid-template-columns: repeat(5, 1fr); gap: 24px; }
+figure { display: flex; flex-direction: column; gap: 24px; min-width: 0; }
+figure img { width: 100%; height: 480px; object-fit: cover; border-radius: 16px; display: block; }
+figure img.tall { height: 520px; border-radius: 12px; }
+figure img.why { height: 400px; }
+figure img.contain { object-fit: contain; background: var(--nacre-2); }
+figcaption { font: 600 32px/1.2 var(--sans); }
+.cap-serif { font: 600 44px/1.1 var(--serif); }
+.final img { outline: 3px solid var(--rule); outline-offset: -3px; }
+.final figcaption { color: var(--brass-deep); }
+.dark figcaption { font-weight: 500; font-size: 36px; }
+
+/* Materials */
+.swatches { display: grid; grid-template-columns: repeat(5, 1fr); gap: 32px; margin-top: 72px; }
+.swatches figure { align-items: center; gap: 32px; }
+.swatches img { width: 280px; height: 280px; border-radius: 50%; }
+.swatches figcaption { font: 500 32px/1.2 var(--sans); text-align: center; }
+
+/* Vizcom */
+.workbench { width: 1664px; height: 640px; object-fit: contain; border-radius: 16px; }
+
+/* Live model */
+.model-row { display: grid; grid-template-columns: 1fr 420px; gap: 32px; flex: 1; min-height: 0; }
+.model-live { position: relative; border-radius: 16px; overflow: hidden;
+  background: radial-gradient(ellipse at 50% 40%, #ffffff 0%, var(--nacre-2) 70%); }
+#model-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; cursor: grab; }
+#model-canvas:active { cursor: grabbing; }
+.model-hint { position: absolute; right: 24px; bottom: 20px; font-size: 24px; color: var(--mute); pointer-events: none; }
+.model-thumbs { display: flex; flex-direction: column; gap: 24px; }
+.model-thumbs figure { gap: 12px; flex: 1; min-height: 0; }
+.model-thumbs img { height: 300px; object-fit: contain; background: var(--nacre-2); }
+.model-thumbs figcaption { font-size: 28px; }
+
+/* Why */
+.close { font: italic 500 72px/1.1 var(--serif); }
+
+/* Chrome around the stage */
+.progress { position: fixed; left: 0; right: 0; bottom: 0; height: 4px; background: transparent; pointer-events: none; }
+.progress .bar { height: 100%; width: 0; background: var(--brass); transition: width .35s ease; }
+
+.notes-panel { position: fixed; left: max(16px, env(safe-area-inset-left, 0px)); right: max(16px, env(safe-area-inset-right, 0px));
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px)); max-width: 980px; margin-inline: auto;
+  background: rgba(14, 14, 13, .92); border: 1px solid #3a3835; border-radius: 12px; padding: 16px 20px; backdrop-filter: blur(8px); }
+.notes-head { display: flex; gap: 16px; align-items: center; font-size: 14px; color: var(--mute); margin-bottom: 8px; }
+.timer { font: 600 18px var(--sans); color: var(--brass); font-variant-numeric: tabular-nums; margin-left: auto; }
+.timer.over { color: #e07a5f; }
+.notes-head button { font: 500 13px var(--sans); color: var(--nacre); background: transparent; border: 1px solid #3a3835; border-radius: 6px; padding: 4px 10px; cursor: pointer; }
+.notes-head button:focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; }
+#notes-text { margin: 0; font-size: 17px; line-height: 1.5; max-height: 30vh; overflow: auto; }
+
+.help { position: fixed; right: max(16px, env(safe-area-inset-right, 0px)); top: calc(12px + env(safe-area-inset-top, 0px));
+  font-size: 13px; color: var(--mute); opacity: .85; transition: opacity .6s ease; pointer-events: none; }
+.help.fade { opacity: 0; }
+kbd { font: 500 12px var(--sans); border: 1px solid #3a3835; border-radius: 4px; padding: 1px 6px; margin-right: 2px; }
+
+@media (prefers-reduced-motion: reduce) { .slide, .slide.active, .progress .bar { transition: none; } }
