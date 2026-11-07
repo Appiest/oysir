@@ -20,7 +20,7 @@ body { background: var(--letterbox); color: var(--nacre); font-family: var(--san
 
 .viewport { position: fixed; inset: 0; display: grid; place-items: center;
   padding: env(safe-area-inset-top, 0px) max(0px, env(safe-area-inset-right, 0px)) env(safe-area-inset-bottom, 0px) max(0px, env(safe-area-inset-left, 0px)); }
-.stage { position: relative; width: 1920px; height: 1080px; flex: none; transform-origin: center center; overflow: hidden; }
+.stage { position: absolute; left: 50%; top: 50%; margin: -540px 0 0 -960px; width: 1920px; height: 1080px; flex: none; transform-origin: center center; overflow: hidden; }
 
 .slide { position: absolute; inset: 0; padding: 128px; display: flex; flex-direction: column; gap: 48px;
   opacity: 0; visibility: hidden; transition: opacity .45s ease, visibility 0s linear .45s; }
