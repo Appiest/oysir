@@ -24,16 +24,19 @@ python3 -m http.server 8000
 | N | Show or hide speaker notes and the 3:00 timer |
 | R | Reset the timer |
 | F | Full screen |
+| P | Play or pause “Our Time” |
 | Home / End | First / last slide |
 
-You can also click (right two-thirds forward, left third back) or swipe. The timer starts when you leave the first slide. Each slide has its own link, for example `#slide-8`.
+You can also click (right two-thirds forward, left third back) or swipe. The timer starts when you leave the first slide. Each slide has its own link, for example `#slide-9`.
 
 On the **3D model** slide, the model turns by itself. Drag it to turn it, and tap the pearl to see it spray.
+
+On the **“Our Time”** slide, press P or the pearl button to play the song (it streams from YouTube, so you need an internet connection). When you move to another slide, the song fades out.
 
 ## Files
 
 ```
-index.html     the nine slides and their speaker notes
+index.html     the ten slides and their speaker notes
 styles.css     layout and type (a 1920×1080 stage scaled to the screen)
 app.js         navigation, notes, timer, and the live 3D model (three.js from a CDN)
 img/           wordmark, sketch, Vizcom renders and crops, workbench screenshot, model views

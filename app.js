@@ -1,7 +1,6 @@
 // OySir Pitch — slide navigation, speaker notes with a 3-minute timer, and a live 3D model.
 const stage = document.getElementById('stage');
 const slides = [...stage.querySelectorAll('.slide')];
-const bar = document.getElementById('bar');
 const notesPanel = document.getElementById('notes-panel');
 const notesText = document.getElementById('notes-text');
 const notesPos = document.getElementById('notes-pos');
@@ -22,11 +21,11 @@ window.addEventListener('resize', fit);
 function show(i, push = true) {
   current = Math.max(0, Math.min(slides.length - 1, i));
   slides.forEach((el, n) => el.classList.toggle('active', n === current));
-  bar.style.width = `${((current + 1) / slides.length) * 100}%`;
   notesText.textContent = slides[current].querySelector('.notes')?.textContent.trim() ?? '';
   notesPos.textContent = `${current + 1} / ${slides.length} · ${slides[current].dataset.title}`;
   if (push) history.replaceState(null, '', `#slide-${current + 1}`);
   if ('model' in slides[current].dataset) model.start(); else model.pause();
+  if (slides[current] !== songSlide) fadeOutSong();
   timer.begin();
 }
 const next = () => show(current + 1);
@@ -38,28 +37,35 @@ function fromHash() {
 }
 window.addEventListener('hashchange', () => show(fromHash(), false));
 
+const forwardKeys = ['ArrowRight', 'ArrowDown', 'PageDown', ' ', 'Enter'];
+const backKeys = ['ArrowLeft', 'ArrowUp', 'PageUp', 'Backspace'];
+const keyActions = {
+  Home: () => show(0),
+  End: () => show(slides.length - 1),
+  n: () => { notesPanel.hidden = !notesPanel.hidden; },
+  f: () => toggleFullscreen(),
+  r: () => timer.reset(),
+  p: () => toggleSong(),
+};
+
 document.addEventListener('keydown', (e) => {
   if (e.metaKey || e.ctrlKey || e.altKey) return;
-  const k = e.key;
-  if (['ArrowRight', 'ArrowDown', 'PageDown', ' ', 'Enter'].includes(k)) { e.preventDefault(); next(); }
-  else if (['ArrowLeft', 'ArrowUp', 'PageUp', 'Backspace'].includes(k)) { e.preventDefault(); prev(); }
-  else if (k === 'Home') show(0);
-  else if (k === 'End') show(slides.length - 1);
-  else if (k === 'n' || k === 'N') notesPanel.hidden = !notesPanel.hidden;
-  else if (k === 'f' || k === 'F') toggleFullscreen();
-  else if (k === 'r' || k === 'R') timer.reset();
+  const k = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+  if (forwardKeys.includes(k)) { e.preventDefault(); next(); }
+  else if (backKeys.includes(k)) { e.preventDefault(); prev(); }
+  else keyActions[k]?.();
 });
 
 // click: right two-thirds forward, left third back (not on the live model)
 stage.addEventListener('click', (e) => {
-  if (e.target.closest('#model-canvas')) return;
+  if (e.target.closest('#model-canvas, #song')) return;
   const r = stage.getBoundingClientRect();
   (e.clientX - r.left < r.width / 3) ? prev() : next();
 });
 
 // swipe
 let touchX = null;
-stage.addEventListener('touchstart', (e) => { if (!e.target.closest('#model-canvas')) touchX = e.touches[0].clientX; }, { passive: true });
+stage.addEventListener('touchstart', (e) => { if (!e.target.closest('#model-canvas, #song')) touchX = e.touches[0].clientX; }, { passive: true });
 stage.addEventListener('touchend', (e) => {
   if (touchX === null) return;
   const dx = e.changedTouches[0].clientX - touchX; touchX = null;
@@ -215,6 +221,59 @@ async function initModel(api) {
     controls.update(); renderer.render(scene, camera);
   });
 }
+
+/* ---------- "Our Time" on the song slide: P or the pearl plays it; leaving the slide fades it out ---------- */
+const songSlide = document.getElementById('song').closest('.slide');
+const songToggle = document.getElementById('song-toggle');
+const song = { player: null, ready: false, playing: false, fadeTimer: 0 };
+
+function loadSongPlayer() {
+  window.onYouTubeIframeAPIReady = () => {
+    song.player = new YT.Player('song-player', {
+      videoId: 'lMo7szh1eLA',
+      playerVars: { controls: 0, disablekb: 1, rel: 0, playsinline: 1, iv_load_policy: 3, fs: 0 },
+      events: { onReady: () => { song.ready = true; }, onStateChange: (e) => showSongState(e.data) },
+    });
+  };
+  const script = document.createElement('script');
+  script.src = 'https://www.youtube.com/iframe_api';
+  document.head.append(script);
+}
+
+function showSongState(state) {
+  const { PLAYING, PAUSED, ENDED } = YT.PlayerState;
+  if (![PLAYING, PAUSED, ENDED].includes(state)) return;
+  song.playing = state === PLAYING;
+  songToggle.classList.toggle('playing', song.playing);
+  songToggle.setAttribute('aria-label', song.playing ? 'Pause “Our Time”' : 'Play “Our Time”');
+}
+
+function playSong() {
+  if (!song.ready) return;
+  clearInterval(song.fadeTimer);
+  song.player.setVolume(100);
+  song.player.playVideo();
+}
+
+function fadeOutSong() {
+  if (!song.ready || !song.playing) return;
+  clearInterval(song.fadeTimer);
+  let volume = song.player.getVolume();
+  song.fadeTimer = setInterval(() => {
+    volume -= 6;
+    if (volume > 0) { song.player.setVolume(volume); return; }
+    clearInterval(song.fadeTimer);
+    song.player.pauseVideo();
+    song.player.setVolume(100);
+  }, 50);
+}
+
+function toggleSong() {
+  if (song.playing) fadeOutSong(); else playSong();
+}
+
+songToggle.addEventListener('click', toggleSong);
+loadSongPlayer();
 
 /* ---------- go ---------- */
 fit();
